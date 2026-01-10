@@ -10,8 +10,8 @@ const taskSchema = z.object({
     status: z.enum(['Pending', 'In Progress', 'Completed']).default('Pending'),
     due_date: z.string().optional().or(z.literal('')),
     // Link fields (one must be set)
-    deal_id: z.string().optional().or(z.literal('')),
-    customer_id: z.string().optional().or(z.literal('')),
+    deal_id: z.string().optional().nullable().or(z.literal('')),
+    customer_id: z.string().optional().nullable().or(z.literal('')),
 }).refine(data => data.deal_id || data.customer_id, {
     message: "Task must be linked to either a Deal or a Customer",
     path: ["deal_id"], // Attach error to one field

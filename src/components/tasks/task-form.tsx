@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 interface MetaData {
     customers: { id: string; name: string }[]
     deals: { id: string; title: string }[]
-    members: { user_id: string; profiles: { full_name: string } }[]
+    members: { user_id: string; profiles: { full_name: string; email?: string } }[]
 }
 
 interface TaskFormProps {
@@ -77,7 +77,7 @@ export function TaskForm({ task, meta, workspaceId, onSuccess, onCancel }: TaskF
                     <option value="">Select a member...</option>
                     {meta.members.map(m => (
                         <option key={m.user_id} value={m.user_id}>
-                            {m.profiles?.full_name || 'Unnamed Member'}
+                            {m.profiles?.full_name || m.profiles?.email || 'Unnamed Member'}
                         </option>
                     ))}
                 </select>

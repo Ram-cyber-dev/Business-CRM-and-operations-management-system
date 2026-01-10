@@ -35,7 +35,7 @@ export default async function TasksPage() {
 
         supabase
             .from('workspace_members')
-            .select('user_id, profiles(full_name)')
+            .select('user_id, profiles(full_name, email)')
             .eq('workspace_id', workspace.id)
     ])
 
