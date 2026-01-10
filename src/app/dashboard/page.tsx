@@ -1,54 +1,184 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { getCurrentWorkspace } from '@/lib/workspace'
+import { Users, Briefcase, CheckSquare, AlertCircle } from 'lucide-react'
 
-export default async function DashboardPage() {
+// Metrics Component
+async function DashboardMetrics({ workspaceId }: { workspaceId: string }) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-        redirect('/login')
-    }
+    // Parallel data fetching for metrics
+    const [
+        { count: customersCount },
+        { count: dealsCount },
+        { count: tasksCount },
+        { count: overdueCount },
+        dealsResult,
+        tasksResult
+    ] = await Promise.all([
+        supabase.from('customers').select('*', { count: 'exact', head: true }).eq('workspace_id', workspaceId),
+        supabase.from('deals').select('*', { count: 'exact', head: true }).eq('workspace_id', workspaceId),
+        supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('workspace_id', workspaceId),
+        supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('workspace_id', workspaceId).lt('due_date', new Date().toISOString()).neq('status', 'Completed'),
+        supabase.from('deals').select('stage').eq('workspace_id', workspaceId),
+        supabase.from('tasks').select('status').eq('workspace_id', workspaceId)
+    ])
 
-    // Fetch first workspace found (Bootstrap logic)
-    const { data: memberData, error } = await supabase
-        .from('workspace_members')
-        .select('role, workspace:workspaces(name)')
-        .eq('user_id', user.id)
-        .limit(1)
-        .single()
+    // Aggregation for breakdowns
+    const dealsByStage = (dealsResult.data || []).reduce((acc: any, curr) => {
+        acc[curr.stage] = (acc[curr.stage] || 0) + 1
+        return acc
+    }, {})
 
-    if (!memberData || error) {
-        // If no workspace found, redirect to onboarding
-        redirect('/onboarding')
-    }
-
-    // Type assertion or manual check because of the join
-    const workspaceName = (memberData.workspace as any)?.name || 'Unknown Workspace'
-    const userRole = memberData.role
+    const tasksByStatus = (tasksResult.data || []).reduce((acc: any, curr) => {
+        acc[curr.status] = (acc[curr.status] || 0) + 1
+        return acc
+    }, {})
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
-                <div className="px-4 py-5 sm:px-6">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                        Current Workspace
-                    </h3>
+        <div className="space-y-8">
+            {/* Top Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-slate-500">Total Customers</p>
+                            <h3 className="text-2xl font-bold text-slate-900 mt-1">{customersCount || 0}</h3>
+                        </div>
+                        <div className="p-3 bg-blue-50 rounded-full">
+                            <Users className="w-6 h-6 text-blue-600" />
+                        </div>
+                    </div>
                 </div>
-                <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-                    <dl className="sm:divide-y sm:divide-gray-200">
-                        <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                            <dt className="text-sm font-medium text-gray-500">Name</dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{workspaceName}</dd>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-slate-500">Total Deals</p>
+                            <h3 className="text-2xl font-bold text-slate-900 mt-1">{dealsCount || 0}</h3>
                         </div>
-                        <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                            <dt className="text-sm font-medium text-gray-500">Your Role</dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 capitalize">{userRole}</dd>
+                        <div className="p-3 bg-green-50 rounded-full">
+                            <Briefcase className="w-6 h-6 text-green-600" />
                         </div>
-                    </dl>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-slate-500">Total Tasks</p>
+                            <h3 className="text-2xl font-bold text-slate-900 mt-1">{tasksCount || 0}</h3>
+                        </div>
+                        <div className="p-3 bg-purple-50 rounded-full">
+                            <CheckSquare className="w-6 h-6 text-purple-600" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-slate-500">Overdue Tasks</p>
+                            <h3 className="text-2xl font-bold text-red-600 mt-1">{overdueCount || 0}</h3>
+                        </div>
+                        <div className="p-3 bg-red-50 rounded-full">
+                            <AlertCircle className="w-6 h-6 text-red-600" />
+                        </div>
+                    </div>
                 </div>
             </div>
-            <p>Welcome to your CRM.</p>
+
+            {/* Breakdowns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Deals by Stage */}
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                        <h3 className="font-semibold text-slate-900">Deals by Stage</h3>
+                    </div>
+                    <div className="p-6">
+                        {Object.keys(dealsByStage).length === 0 ? (
+                            <p className="text-sm text-slate-500">No deals yet.</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {['New', 'Contacted', 'Negotiation', 'Won', 'Lost'].map(stage => {
+                                    const count = dealsByStage[stage] || 0
+                                    if (count === 0) return null
+                                    return (
+                                        <div key={stage} className="flex items-center justify-between">
+                                            <span className="text-sm text-slate-700">{stage}</span>
+                                            <div className="flex items-center space-x-2">
+                                                <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-blue-500 rounded-full"
+                                                        style={{ width: `${(count / (dealsCount || 1)) * 100}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-sm font-medium text-slate-900 w-6 text-right">{count}</span>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Tasks by Status */}
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                        <h3 className="font-semibold text-slate-900">Tasks by Status</h3>
+                    </div>
+                    <div className="p-6">
+                        {Object.keys(tasksByStatus).length === 0 ? (
+                            <p className="text-sm text-slate-500">No tasks yet.</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {['Pending', 'In Progress', 'Completed'].map(status => {
+                                    const count = tasksByStatus[status] || 0
+                                    if (count === 0) return null
+                                    return (
+                                        <div key={status} className="flex items-center justify-between">
+                                            <span className="text-sm text-slate-700">{status}</span>
+                                            <div className="flex items-center space-x-2">
+                                                <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full rounded-full ${status === 'Completed' ? 'bg-green-500' :
+                                                                status === 'In Progress' ? 'bg-yellow-500' : 'bg-slate-400'
+                                                            }`}
+                                                        style={{ width: `${(count / (tasksCount || 1)) * 100}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-sm font-medium text-slate-900 w-6 text-right">{count}</span>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default async function DashboardPage() {
+    const workspace = await getCurrentWorkspace()
+
+    if (!workspace) {
+        return <div>No workspace found.</div>
+    }
+
+    return (
+        <div className="p-8">
+            <div className="mb-8">
+                <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+                <p className="text-slate-500">Welcome to {workspace.name}</p>
+            </div>
+
+            <Suspense fallback={<div>Loading metrics...</div>}>
+                <DashboardMetrics workspaceId={workspace.id} />
+            </Suspense>
         </div>
     )
 }
