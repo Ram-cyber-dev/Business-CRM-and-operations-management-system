@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Users, Briefcase, CheckSquare, Settings, LogOut, LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { signout } from '@/app/login/actions'
 
 interface SidebarItem {
     name: string
@@ -47,7 +48,10 @@ export function Sidebar() {
                 })}
             </nav>
             <div className="p-4 border-t border-slate-800">
-                <button className="flex items-center space-x-3 px-4 py-3 w-full rounded-lg hover:bg-slate-800 text-red-400 transition-colors">
+                <button
+                    onClick={() => signout()}
+                    className="flex items-center space-x-3 px-4 py-3 w-full rounded-lg hover:bg-slate-800 text-red-400 transition-colors"
+                >
                     <LogOut className="w-5 h-5" />
                     <span>Sign Out</span>
                 </button>
