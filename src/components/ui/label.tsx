@@ -1,6 +1,4 @@
 import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label" // Usually needs install, but backing off to simple label if not present?
-// Actually if I use radix-ui it might fail. I'll make a simple one.
 
 import { cn } from "@/lib/utils"
 
