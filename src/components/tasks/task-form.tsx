@@ -21,7 +21,13 @@ interface TaskFormProps {
     onCancel?: () => void
 }
 
-const initialState = {
+
+type ActionState = {
+    error?: string | Record<string, string[]>
+    success?: boolean
+}
+
+const initialState: ActionState = {
     error: '',
     success: false
 }
@@ -38,7 +44,7 @@ export function TaskForm({ task, meta, workspaceId, onSuccess, onCancel }: TaskF
     )
 
     useEffect(() => {
-        if ((state as any)?.success) {
+        if (state.success) {
             if (onSuccess) onSuccess()
         }
     }, [state, onSuccess])
@@ -48,9 +54,9 @@ export function TaskForm({ task, meta, workspaceId, onSuccess, onCancel }: TaskF
             {task && <input type="hidden" name="id" value={task.id} />}
             <input type="hidden" name="workspace_id" value={workspaceId} />
 
-            {(state as any)?.error && (
+            {state.error && (
                 <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
-                    {typeof (state as any).error === 'string' ? (state as any).error : JSON.stringify((state as any).error)}
+                    {typeof state.error === 'string' ? state.error : JSON.stringify(state.error)}
                 </div>
             )}
 
