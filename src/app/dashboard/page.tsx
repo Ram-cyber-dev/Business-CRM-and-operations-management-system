@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentWorkspace } from '@/lib/workspace'
 import { Users, Briefcase, CheckSquare, AlertCircle } from 'lucide-react'
@@ -39,53 +40,61 @@ async function DashboardMetrics({ workspaceId }: { workspaceId: string }) {
         <div className="space-y-8">
             {/* Top Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-slate-500">Total Customers</p>
-                            <h3 className="text-2xl font-bold text-slate-900 mt-1">{customersCount || 0}</h3>
-                        </div>
-                        <div className="p-3 bg-blue-50 rounded-full">
-                            <Users className="w-6 h-6 text-blue-600" />
+                <Link href="/dashboard/customers" className="block group">
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 group-hover:border-blue-300 group-hover:shadow-md transition-all">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-slate-500">Total Customers</p>
+                                <h3 className="text-2xl font-bold text-slate-900 mt-1">{customersCount || 0}</h3>
+                            </div>
+                            <div className="p-3 bg-blue-50 rounded-full group-hover:bg-blue-100 transition-colors">
+                                <Users className="w-6 h-6 text-blue-600" />
+                            </div>
                         </div>
                     </div>
-                </div>
+                </Link>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-slate-500">Total Deals</p>
-                            <h3 className="text-2xl font-bold text-slate-900 mt-1">{dealsCount || 0}</h3>
-                        </div>
-                        <div className="p-3 bg-green-50 rounded-full">
-                            <Briefcase className="w-6 h-6 text-green-600" />
+                <Link href="/dashboard/deals" className="block group">
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 group-hover:border-green-300 group-hover:shadow-md transition-all">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-slate-500">Total Deals</p>
+                                <h3 className="text-2xl font-bold text-slate-900 mt-1">{dealsCount || 0}</h3>
+                            </div>
+                            <div className="p-3 bg-green-50 rounded-full group-hover:bg-green-100 transition-colors">
+                                <Briefcase className="w-6 h-6 text-green-600" />
+                            </div>
                         </div>
                     </div>
-                </div>
+                </Link>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-slate-500">Total Tasks</p>
-                            <h3 className="text-2xl font-bold text-slate-900 mt-1">{tasksCount || 0}</h3>
-                        </div>
-                        <div className="p-3 bg-purple-50 rounded-full">
-                            <CheckSquare className="w-6 h-6 text-purple-600" />
+                <Link href="/dashboard/tasks" className="block group">
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 group-hover:border-purple-300 group-hover:shadow-md transition-all">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-slate-500">Total Tasks</p>
+                                <h3 className="text-2xl font-bold text-slate-900 mt-1">{tasksCount || 0}</h3>
+                            </div>
+                            <div className="p-3 bg-purple-50 rounded-full group-hover:bg-purple-100 transition-colors">
+                                <CheckSquare className="w-6 h-6 text-purple-600" />
+                            </div>
                         </div>
                     </div>
-                </div>
+                </Link>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-slate-500">Overdue Tasks</p>
-                            <h3 className="text-2xl font-bold text-red-600 mt-1">{overdueCount || 0}</h3>
-                        </div>
-                        <div className="p-3 bg-red-50 rounded-full">
-                            <AlertCircle className="w-6 h-6 text-red-600" />
+                <Link href="/dashboard/tasks" className="block group">
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 group-hover:border-red-300 group-hover:shadow-md transition-all">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-slate-500">Overdue Tasks</p>
+                                <h3 className="text-2xl font-bold text-red-600 mt-1">{overdueCount || 0}</h3>
+                            </div>
+                            <div className="p-3 bg-red-50 rounded-full group-hover:bg-red-100 transition-colors">
+                                <AlertCircle className="w-6 h-6 text-red-600" />
+                            </div>
                         </div>
                     </div>
-                </div>
+                </Link>
             </div>
 
             {/* Breakdowns */}
@@ -143,7 +152,7 @@ async function DashboardMetrics({ workspaceId }: { workspaceId: string }) {
                                                 <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
                                                     <div
                                                         className={`h-full rounded-full ${status === 'Completed' ? 'bg-green-500' :
-                                                                status === 'In Progress' ? 'bg-yellow-500' : 'bg-slate-400'
+                                                            status === 'In Progress' ? 'bg-yellow-500' : 'bg-slate-400'
                                                             }`}
                                                         style={{ width: `${(count / (tasksCount || 1)) * 100}%` }}
                                                     />
