@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentWorkspace } from '@/lib/workspace'
 import { Users, Briefcase, CheckSquare, AlertCircle } from 'lucide-react'
@@ -175,7 +176,7 @@ export default async function DashboardPage() {
     const workspace = await getCurrentWorkspace()
 
     if (!workspace) {
-        return <div>No workspace found.</div>
+        redirect('/onboarding')
     }
 
     return (
