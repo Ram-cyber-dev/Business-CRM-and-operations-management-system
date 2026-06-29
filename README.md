@@ -69,4 +69,4 @@ All tables (`customers`, `deals`, `tasks`) have Row Level Security enabled.
 - **DELETE**: Only allowed if user has `role = 'admin'` in `workspace_members`.
 
 ---
-*Built with ❤️ by Antigravity*
+Built by Ram
